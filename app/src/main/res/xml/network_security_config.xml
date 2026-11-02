@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- chatbit: no plain http/ws anywhere, even on Android 8 where it is still allowed by default.
+     Relays are wss:// through Tor; the hotspot page is served by the app, not fetched. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

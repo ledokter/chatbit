@@ -433,7 +433,7 @@ fun AboutSheet(
                         var liveVoiceEnabled by remember {
                             mutableStateOf(com.bitchat.android.features.voice.LiveVoicePreferences.isEnabled(context))
                         }
-                        val torMode = remember { mutableStateOf(TorPreferenceManager.get(context)) }
+                        val torMode = TorPreferenceManager.modeFlow.collectAsState()
                         val torProvider = remember { ArtiTorManager.getInstance() }
                         val torStatus by torProvider.statusFlow.collectAsState()
                         val torAvailable = remember { torProvider.isTorAvailable() }
@@ -595,12 +595,9 @@ fun AboutSheet(
                                         subtitle = stringResource(R.string.about_tor_route),
                                         checked = torMode.value == TorMode.ON,
                                         onCheckedChange = { enabled ->
-                                            if (torAvailable) {
-                                                torMode.value = if (enabled) TorMode.ON else TorMode.OFF
-                                                TorPreferenceManager.set(context, torMode.value)
-                                            }
+                                            if (torAvailable) requestTorMode(context, enabled)
                                         },
-                                        enabled = torAvailable,
+                                        enabled = torSwitchEnabled(torAvailable, torMode.value),
                                         statusIndicator = if (torMode.value == TorMode.ON) {
                                             {
                                                 val statusColor = when {

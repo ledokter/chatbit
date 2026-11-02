@@ -31,8 +31,16 @@ object SecurityPreferences {
 private const val KEY_PIN_LEN = "pin_len"
 private const val KEY_DURESS_LEN = "duress_len"
     private const val KEY_PIN_LOCKOUT = "pin_lockout_until"
-    private const val PIN_ITERATIONS = 20_000
+    private const val KEY_WIPE_AFTER_FAILS = "wipe_after_fails"
+    private const val KEY_PANIC_TRIGGER = "panic_trigger_pkg"
+    private const val KEY_PANIC_PENDING = "panic_pending"
+    /** OWASP 2023 figure for PBKDF2-HMAC-SHA256; hashes stored as "iterations:salt:hash". */
+    private const val PIN_ITERATIONS = 600_000
+    /** Hashes written before the iteration count was stored ("salt:hash"); rehashed on next unlock. */
+    private const val LEGACY_PIN_ITERATIONS = 20_000
     const val PIN_MIN = 4
+    /** New PINs: 6 digits at least (older 4-digit PINs keep working). */
+    const val NEW_PIN_MIN = 6
     const val PIN_MAX = 8
 
     const val DEFAULT_EPHEMERAL_HOURS = 24
@@ -40,6 +48,7 @@ private const val KEY_DURESS_LEN = "duress_len"
     const val CLIPBOARD_CLEAR_SECONDS = 60L
     val EPHEMERAL_CHOICES = listOf(0, 1, 24, 72, 168)      // hours, 0 = keep
     val AUTO_WIPE_CHOICES = listOf(0, 7, 30, 90)           // days, 0 = never
+    val WIPE_AFTER_FAILS_CHOICES = listOf(0, 10, 20)       // wrong PINs, 0 = never
 
     private lateinit var prefs: SharedPreferences
 
@@ -75,6 +84,14 @@ private const val KEY_DURESS_LEN = "duress_len"
     private val _autoWipeDays = MutableStateFlow(DEFAULT_AUTO_WIPE_DAYS)
     val autoWipeDays: StateFlow<Int> = _autoWipeDays.asStateFlow()
 
+    private val _wipeAfterFails = MutableStateFlow(0)
+    /** Wrong PINs in a row that wipe everything like the duress PIN; 0 = never. */
+    val wipeAfterFails: StateFlow<Int> = _wipeAfterFails.asStateFlow()
+
+    private val _panicTrigger = MutableStateFlow<String?>(null)
+    /** Package of the panic app (Ripple, PanicKit) whose alert wipes chatbit; null = none. */
+    val panicTrigger: StateFlow<String?> = _panicTrigger.asStateFlow()
+
     private val _showBlocked = MutableStateFlow(false)
     /** Show messages of blocked / reported people in the chat (hidden by default). */
     val showBlocked: StateFlow<Boolean> = _showBlocked.asStateFlow()
@@ -93,6 +110,8 @@ private const val KEY_DURESS_LEN = "duress_len"
         _linksTorExplained.value = prefs.getBoolean(KEY_LINKS_TOR_EXPLAINED, false)
         _autoWipeDays.value = prefs.getInt(KEY_AUTO_WIPE_DAYS, DEFAULT_AUTO_WIPE_DAYS)
         _showBlocked.value = prefs.getBoolean(KEY_SHOW_BLOCKED, false)
+        _wipeAfterFails.value = prefs.getInt(KEY_WIPE_AFTER_FAILS, 0)
+        _panicTrigger.value = prefs.getString(KEY_PANIC_TRIGGER, null)
         loadPins()
     }
 
@@ -120,7 +139,7 @@ private const val KEY_DURESS_LEN = "duress_len"
     fun setClipboardClear(v: Boolean) { _clipboardClear.value = v; put { putBoolean(KEY_CLIPBOARD_CLEAR, v) } }
     // MARK: chatbit PIN and duress PIN
 
-    enum class PinResult { OK, DURESS, WRONG, LOCKED_OUT }
+    enum class PinResult { OK, DURESS, WRONG, LOCKED_OUT, WIPE }
 
     private val _hasPin = MutableStateFlow(false)
     /** A chatbit PIN replaces the system unlock (fingerprint / screen code) when set. */
@@ -135,25 +154,37 @@ private const val KEY_DURESS_LEN = "duress_len"
         _hasDuress.value = prefs.getString(KEY_DURESS, null) != null
     }
 
-    private fun hash(pin: String, salt: ByteArray): ByteArray {
-        val spec = javax.crypto.spec.PBEKeySpec(pin.toCharArray(), salt, PIN_ITERATIONS, 256)
+    private fun hash(pin: String, salt: ByteArray, iterations: Int = PIN_ITERATIONS): ByteArray {
+        val spec = javax.crypto.spec.PBEKeySpec(pin.toCharArray(), salt, iterations, 256)
         return javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
     }
 
     private fun encode(pin: String): String {
         val salt = ByteArray(16).also { java.security.SecureRandom().nextBytes(it) }
         val b64 = { b: ByteArray -> android.util.Base64.encodeToString(b, android.util.Base64.NO_WRAP) }
-        return b64(salt) + ":" + b64(hash(pin, salt))
+        return "$PIN_ITERATIONS:" + b64(salt) + ":" + b64(hash(pin, salt))
     }
 
     private fun matches(pin: String, stored: String?): Boolean {
-        val parts = stored?.split(':')?.takeIf { it.size == 2 } ?: return false
-        val salt = android.util.Base64.decode(parts[0], android.util.Base64.NO_WRAP)
-        val expected = android.util.Base64.decode(parts[1], android.util.Base64.NO_WRAP)
-        return java.security.MessageDigest.isEqual(expected, hash(pin, salt))
+        val parts = stored?.split(':') ?: return false
+        val (iterations, saltB64, hashB64) = when (parts.size) {
+            2 -> Triple(LEGACY_PIN_ITERATIONS, parts[0], parts[1])
+            3 -> Triple(parts[0].toIntOrNull() ?: return false, parts[1], parts[2])
+            else -> return false
+        }
+        val salt = android.util.Base64.decode(saltB64, android.util.Base64.NO_WRAP)
+        val expected = android.util.Base64.decode(hashB64, android.util.Base64.NO_WRAP)
+        return java.security.MessageDigest.isEqual(expected, hash(pin, salt, iterations))
     }
 
+    /** True when the stored hash uses fewer iterations than today (rehash it after a good PIN). */
+    private fun isWeak(stored: String?): Boolean =
+        stored != null && stored.split(':').let { it.size != 3 || (it[0].toIntOrNull() ?: 0) < PIN_ITERATIONS }
+
     fun isValidPin(pin: String) = pin.length in PIN_MIN..PIN_MAX && pin.all { it.isDigit() }
+
+    /** A new chatbit PIN needs [NEW_PIN_MIN] digits; the duress PIN only has to match its length. */
+    fun isValidNewPin(pin: String, duress: Boolean) = isValidPin(pin) && (duress || pin.length >= NEW_PIN_MIN)
 
     /** Sets (or removes with null) the chatbit PIN; removing it also removes the duress PIN. */
     fun setPin(pin: String?) {
@@ -212,11 +243,21 @@ private const val KEY_DURESS_LEN = "duress_len"
                 PinResult.DURESS
             }
             matches(pin, prefs.getString(KEY_PIN, null)) -> {
-                put { putInt(KEY_PIN_FAILS, 0); putInt(KEY_PIN_LEN, pin.length) }
+                val rehash = isWeak(prefs.getString(KEY_PIN, null))
+                put {
+                    putInt(KEY_PIN_FAILS, 0); putInt(KEY_PIN_LEN, pin.length)
+                    if (rehash) putString(KEY_PIN, encode(pin))
+                }
                 PinResult.OK
             }
             else -> {
                 val fails = prefs.getInt(KEY_PIN_FAILS, 0) + 1
+                val wipeAt = _wipeAfterFails.value
+                if (wipeAt > 0 && fails >= wipeAt) {
+                    // same silent wipe as the duress PIN; the next PIN starts a fresh count
+                    put { putInt(KEY_PIN_FAILS, 0); remove(KEY_PIN_LOCKOUT) }
+                    return PinResult.WIPE
+                }
                 put {
                     putInt(KEY_PIN_FAILS, fails)
                     if (fails >= 5) putLong(KEY_PIN_LOCKOUT, System.currentTimeMillis() + (30_000L shl (fails - 5).coerceAtMost(8)))
@@ -225,6 +266,21 @@ private const val KEY_DURESS_LEN = "duress_len"
             }
         }
     }
+
+    fun setWipeAfterFails(v: Int) { _wipeAfterFails.value = v; put { putInt(KEY_WIPE_AFTER_FAILS, v) } }
+
+    /** Panic app trusted to wipe chatbit (PanicKit "connect"); null forgets it. */
+    fun setPanicTrigger(pkg: String?) {
+        _panicTrigger.value = pkg
+        put { if (pkg == null) remove(KEY_PANIC_TRIGGER) else putString(KEY_PANIC_TRIGGER, pkg) }
+    }
+
+    /**
+     * A panic alert asked for a wipe that has not finished yet: written synchronously so that a
+     * killed process still wipes on its next start.
+     */
+    fun isPanicPending(): Boolean = ::prefs.isInitialized && prefs.getBoolean(KEY_PANIC_PENDING, false)
+    fun setPanicPending(v: Boolean) { if (::prefs.isInitialized) prefs.edit().putBoolean(KEY_PANIC_PENDING, v).commit() }
 
     fun setShowBlocked(v: Boolean) { _showBlocked.value = v; put { putBoolean(KEY_SHOW_BLOCKED, v) } }
     fun setAutoWipeDays(v: Int) { _autoWipeDays.value = v; put { putInt(KEY_AUTO_WIPE_DAYS, v) } }

@@ -113,6 +113,7 @@ internal fun SecuritySettingsCard(advanced: Boolean) {
                         )
                     }
                 }
+                WipeTriggerSettings()
             }
         }
     }
@@ -191,6 +192,49 @@ internal fun SecurityToggles() {
                 )
             }
         }
+        WipeTriggerSettings()
+    }
+}
+
+/** Other wipe triggers: too many wrong PINs, and the alert of a panic app (Ripple, PanicKit). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun WipeTriggerSettings() {
+    val context = LocalContext.current
+    val fails by SecurityPreferences.wipeAfterFails.collectAsState()
+    val panicApp by SecurityPreferences.panicTrigger.collectAsState()
+    SecLabel(stringResource(R.string.sec_wipe_fails_title), R.string.help_wipe_fails)
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        SecurityPreferences.WIPE_AFTER_FAILS_CHOICES.forEach { n ->
+            FilterChip(
+                selected = fails == n,
+                onClick = { SecurityPreferences.setWipeAfterFails(n) },
+                label = {
+                    Text(
+                        if (n == 0) stringResource(R.string.tor_rotation_never) else stringResource(R.string.sec_wipe_fails_n, n),
+                        fontFamily = BitchatFontFamily, fontSize = 11.sp
+                    )
+                }
+            )
+        }
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            SecLabel(stringResource(R.string.sec_panic_title), R.string.help_panic_app)
+            SecHint(
+                panicApp?.let { pkg ->
+                    val label = androidx.compose.runtime.remember(pkg) {
+                        runCatching {
+                            context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(pkg, 0)).toString()
+                        }.getOrDefault(pkg)
+                    }
+                    stringResource(R.string.sec_panic_connected, label)
+                } ?: stringResource(R.string.sec_panic_none)
+            )
+        }
+        if (panicApp != null) {
+            ChatbitButton(text = stringResource(R.string.sec_panic_forget), onClick = { SecurityPreferences.setPanicTrigger(null) }, danger = true)
+        }
     }
 }
 
@@ -254,6 +298,7 @@ internal fun PinSettings() {
     editing?.let { forPin ->
         PinDialog(
             title = stringResource(if (forPin) R.string.pin_title else R.string.duress_title),
+            duress = !forPin,
             onDismiss = { editing = null },
             onConfirm = { pin ->
                 if (forPin) {
@@ -287,7 +332,7 @@ private fun PinRow(title: Int, desc: Int, isSet: Boolean, help: Int? = null, onS
 }
 
 @Composable
-private fun PinDialog(title: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+private fun PinDialog(title: String, duress: Boolean, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     // In-app keypad only: the PIN never reaches the system keyboard.
     var first by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
     var mismatch by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -300,7 +345,7 @@ private fun PinDialog(title: String, onDismiss: () -> Unit, onConfirm: (String) 
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                SecHint(stringResource(R.string.pin_rules, SecurityPreferences.PIN_MIN, SecurityPreferences.PIN_MAX))
+                SecHint(stringResource(R.string.pin_rules, if (duress) SecurityPreferences.PIN_MIN else SecurityPreferences.NEW_PIN_MIN, SecurityPreferences.PIN_MAX))
                 Keypad(
                     title = stringResource(when {
                         mismatch -> R.string.pin_mismatch
@@ -314,7 +359,7 @@ private fun PinDialog(title: String, onDismiss: () -> Unit, onConfirm: (String) 
                 ) { typed ->
                     val firstPin = first
                     when {
-                        firstPin == null -> if (SecurityPreferences.isValidPin(typed)) { first = typed; mismatch = false }
+                        firstPin == null -> if (SecurityPreferences.isValidNewPin(typed, duress)) { first = typed; mismatch = false }
                         firstPin == typed -> onConfirm(typed)
                         else -> { first = null; mismatch = true }
                     }

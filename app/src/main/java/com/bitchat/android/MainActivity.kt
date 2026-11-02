@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.repeatOnLifecycle
@@ -173,6 +174,10 @@ class MainActivity : OrientationAwareActivity() {
                         // duress PIN: silent full wipe, then the app opens as if it were new
                         onDuress = { chatViewModel.panicClearAllData() }
                     )
+                } else {
+                    ExternalVerifyDialog()
+                    com.bitchat.android.ui.TorOffConfirmDialog()
+                    TamperedCopyDialog()
                 }
             }
             }
@@ -183,6 +188,8 @@ class MainActivity : OrientationAwareActivity() {
             Log.w("MainActivity", "Auto-wipe: app unused for too long")
             chatViewModel.panicClearAllData()
         }
+        // chatbit: alert of the trusted panic app (also resumes a wipe cut short by a killed process)
+        handlePanicIntent(intent)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 // no screenshots or screen recording of the app
@@ -765,6 +772,7 @@ class MainActivity : OrientationAwareActivity() {
         }
 
         com.bitchat.android.service.AppShutdownCoordinator.cancelPendingShutdown()
+        if (handlePanicIntent(intent)) return
         
         // Handle notification intents when app is already running
         if (mainViewModel.onboardingState.value == OnboardingState.COMPLETE) {
@@ -895,8 +903,25 @@ class MainActivity : OrientationAwareActivity() {
         }
     }
 
+    /** Runs a pending panic wipe; when a panic app just asked for it, leaves the screen at once. */
+    private fun handlePanicIntent(intent: Intent?): Boolean {
+        if (!com.bitchat.android.security.SecurityPreferences.isPanicPending()) return false
+        Log.w("MainActivity", "Panic app alert: wiping")
+        com.bitchat.android.security.AppLock.lockNow()
+        chatViewModel.panicClearAllData()
+        if (intent?.getBooleanExtra(com.bitchat.android.security.PanicResponderActivity.EXTRA_PANIC, false) == true) {
+            moveTaskToBack(true)
+        }
+        return true
+    }
+
+    /** Verification link opened from another app, waiting for the user's yes (never automatic). */
+    private val pendingExternalVerify = mutableStateOf<VerificationService.VerificationQR?>(null)
+
     private fun handleVerificationIntent(intent: Intent) {
         val uri = intent.data ?: return
+        // links come from any app: refuse oversized ones before parsing anything
+        if (uri.toString().length > 2048) return
         // chatbit private room invitation: ask the user before joining
         if (uri.scheme == "chatbit" && uri.host == "room") {
             com.bitchat.android.rooms.PrivateRooms.offerInvite(
@@ -906,11 +931,61 @@ class MainActivity : OrientationAwareActivity() {
         }
         if (uri.scheme != "bitchat" || uri.host != "verify") return
 
-        chatViewModel.showVerificationSheet()
-        val qr = VerificationService.verifyScannedQR(uri.toString())
-        if (qr != null) {
-            chatViewModel.beginQRVerification(qr)
+        // signed and recent, but sent by another app: start nothing (no handshake, no cached
+        // nickname) until the user confirms in the dialog
+        pendingExternalVerify.value = VerificationService.verifyScannedQR(uri.toString()) ?: return
+    }
+
+    /** Not signed by the chatbit key: warn at every launch, the user may still go on. */
+    private val tamperedCopy = mutableStateOf(false)
+    private var tamperChecked = false
+
+    @Composable
+    private fun TamperedCopyDialog() {
+        LaunchedEffect(Unit) {
+            if (tamperChecked) return@LaunchedEffect
+            tamperChecked = true
+            tamperedCopy.value = !kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                com.bitchat.android.security.SignatureCheck.isGenuine(this@MainActivity)
+            }
         }
+        if (!tamperedCopy.value) return
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = {},
+            title = { androidx.compose.material3.Text(stringResource(R.string.tampered_title)) },
+            text = { androidx.compose.material3.Text(stringResource(R.string.tampered_desc)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { tamperedCopy.value = false }) {
+                    androidx.compose.material3.Text(stringResource(R.string.tampered_continue))
+                }
+            }
+        )
+    }
+
+    @Composable
+    private fun ExternalVerifyDialog() {
+        val qr = pendingExternalVerify.value ?: return
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { pendingExternalVerify.value = null },
+            title = { androidx.compose.material3.Text(stringResource(R.string.verify_link_title)) },
+            text = {
+                androidx.compose.material3.Text(
+                    stringResource(R.string.verify_link_ask, qr.nickname.filter { !it.isISOControl() }.take(32))
+                )
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    pendingExternalVerify.value = null
+                    chatViewModel.showVerificationSheet()
+                    chatViewModel.beginQRVerification(qr)
+                }) { androidx.compose.material3.Text(stringResource(R.string.verify_link_yes)) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { pendingExternalVerify.value = null }) {
+                    androidx.compose.material3.Text(stringResource(R.string.cancel_lower))
+                }
+            }
+        )
     }
 
     

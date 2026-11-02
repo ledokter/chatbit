@@ -277,8 +277,8 @@ internal fun SettingsTab(viewModel: ChatViewModel, onReplayTour: () -> Unit, mod
                         title = stringResource(R.string.about_tor_title),
                         subtitle = stringResource(R.string.about_tor_route),
                         checked = mode == TorMode.ON,
-                        onCheckedChange = { on -> if (available) TorPreferenceManager.set(context, if (on) TorMode.ON else TorMode.OFF) },
-                        enabled = available,
+                        onCheckedChange = { on -> if (available) requestTorMode(context, on) },
+                        enabled = torSwitchEnabled(available, mode),
                         help = R.string.help_tor
                     )
                     TorStatusCard(showRotation = true, outerPadding = 12.dp)

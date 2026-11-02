@@ -1222,4 +1222,24 @@
     <string name="torlink_clipboard_secure">The link goes through chatbit\'s secure clipboard: it is marked sensitive (Android and the keyboard do not show it), and it is erased after 60 seconds, or as soon as you come back to chatbit, so that no other app can read it afterwards.</string>
     <string name="torlink_clipboard_keep">Automatic clipboard clearing is off (Settings › Security): the link stays in the clipboard, where other apps can read it. Clear it once pasted.</string>
     <string name="torlink_pasted_toast">Link copied (secure clipboard): paste it into Tor Browser\'s address bar.</string>
+    <string name="sec_wipe_fails_title">Wipe everything after too many wrong PINs</string>
+    <string name="sec_wipe_fails_n">%1$d tries</string>
+    <string name="help_wipe_fails">Someone tries to guess your PIN: after this many wrong PINs in a row, everything is wiped silently, like with the duress PIN. Waiting times between tries already apply.</string>
+    <string name="sec_panic_title">Panic app</string>
+    <string name="help_panic_app">A panic button app (Ripple, PanicKit) can wipe chatbit in one gesture. Connect chatbit from inside that app; only the app you approved can trigger the wipe.</string>
+    <string name="sec_panic_connected">Connected: %1$s. Its alert wipes chatbit.</string>
+    <string name="sec_panic_none">None. Connect chatbit from Ripple or another PanicKit app.</string>
+    <string name="sec_panic_forget">Disconnect</string>
+    <string name="sec_panic_connect_ask">Allow %1$s to wipe chatbit when you raise an alert? Messages, keys and media are erased, like with the duress PIN.</string>
+    <string name="sec_panic_connect_yes">Allow</string>
+    <string name="verify_link_title">Verify an identity</string>
+    <string name="verify_link_ask">Another app opened a verification link for %1$s. Start the check with this person?</string>
+    <string name="verify_link_yes">Verify</string>
+    <string name="tor_off_title">Turn Tor off?</string>
+    <string name="tor_off_ask">Without Tor, every relay and zone sees your IP address, and so your approximate location. Turn it off only if you know why.</string>
+    <string name="tor_off_yes">Turn off</string>
+    <string name="tor_off_keep">Keep Tor</string>
+    <string name="tampered_title">Modified copy</string>
+    <string name="tampered_desc">This copy of chatbit is not signed with the official key: it may have been modified to spy on you. Install chatbit again from the official website or Google Play.</string>
+    <string name="tampered_continue">Continue anyway</string>
 </resources>

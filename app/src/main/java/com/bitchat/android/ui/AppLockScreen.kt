@@ -93,7 +93,7 @@ private fun PinCreate() {
     }
     Keypad(
         title = error?.let { stringResource(it) } ?: when {
-            first == null && !duressStep -> stringResource(R.string.pin_create, SecurityPreferences.PIN_MIN)
+            first == null && !duressStep -> stringResource(R.string.pin_create, SecurityPreferences.NEW_PIN_MIN)
             first == null -> stringResource(R.string.duress_create)
             else -> stringResource(R.string.pin_create_confirm)
         },
@@ -103,7 +103,7 @@ private fun PinCreate() {
             val firstPin = first
             error = null
             when {
-                firstPin == null -> if (SecurityPreferences.isValidPin(pin)) first = pin
+                firstPin == null -> if (SecurityPreferences.isValidNewPin(pin, duressStep)) first = pin
                 firstPin != pin -> { first = null; error = R.string.pin_mismatch }
                 !duressStep -> { SecurityPreferences.setPin(pin); first = null; duressStep = true }
                 else -> when (SecurityPreferences.setDuressPin(pin)) {
@@ -150,7 +150,8 @@ private fun PinPad(onDuress: () -> Unit) {
                 checking = false
                 when (result) {
                     PinResult.OK -> AppLock.unlock()
-                    PinResult.DURESS -> { onDuress(); AppLock.unlock() }
+                    // too many wrong PINs (when chosen): same silent wipe as the duress PIN
+                    PinResult.DURESS, PinResult.WIPE -> { onDuress(); AppLock.unlock() }
                     PinResult.WRONG, PinResult.LOCKED_OUT -> {
                         error = true
                         waitMs = SecurityPreferences.pinLockoutRemainingMs()

@@ -1,8 +1,13 @@
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
--keep class com.bitchat.android.protocol.** { *; }
--keep class com.bitchat.android.crypto.** { *; }
+# chatbit: protocol, crypto, identity, favorites and nostr used to be kept whole, which left the
+# crypto readable like source in the APK. Only what Gson reads by reflection keeps its names now:
+# JSON field names are part of the Nostr wire format and of the stored favorites.
+-keep class com.bitchat.android.nostr.NostrEvent { <fields>; <init>(...); }
+-keep class com.bitchat.android.nostr.NostrRequest$* { <fields>; }
+-keep class com.bitchat.android.nostr.NostrFilter { <fields>; }
+-keep class com.bitchat.android.favorites.FavoriteRelationshipData { <fields>; <init>(...); }
 -dontwarn org.bouncycastle.**
 -keep class org.bouncycastle.** { *; }
 
@@ -12,10 +17,6 @@
     *;
 }
 
-# Keep all classes that might use reflection
--keep class com.bitchat.android.favorites.** { *; }
--keep class com.bitchat.android.nostr.** { *; }
--keep class com.bitchat.android.identity.** { *; }
 
 # Room loads generated database implementations by name and invokes their no-argument
 # constructors reflectively. R8 full-mode can otherwise optimize away WorkDatabase_Impl's

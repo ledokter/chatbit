@@ -10,12 +10,42 @@ import com.bitchat.android.net.ArtiTorManager
  */
 class BitchatApplication : Application() {
 
+    /**
+     * chatbit: every screen (map, zone picker, hotspot, panic prompt…) refuses screenshots and
+     * screen recording, and the app locks as soon as the phone screen turns off.
+     */
+    private fun installScreenGuards() {
+        registerActivityLifecycleCallbacks(object : android.app.Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {
+                if (com.bitchat.android.security.SecurityPreferences.blockScreenshots.value &&
+                    !com.bitchat.android.security.SecurityPreferences.isTestLab(activity)) {
+                    activity.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+                }
+            }
+            override fun onActivityStarted(activity: android.app.Activity) {}
+            override fun onActivityResumed(activity: android.app.Activity) {}
+            override fun onActivityPaused(activity: android.app.Activity) {}
+            override fun onActivityStopped(activity: android.app.Activity) {}
+            override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
+            override fun onActivityDestroyed(activity: android.app.Activity) {}
+        })
+        // SCREEN_OFF is only delivered to receivers registered at runtime
+        androidx.core.content.ContextCompat.registerReceiver(this, object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: android.content.Context, intent: android.content.Intent) {
+                if (!com.bitchat.android.security.SecurityPreferences.isTestLab(context)) {
+                    com.bitchat.android.security.AppLock.lockNow()
+                }
+            }
+        }, android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_OFF), androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
+    }
+
     override fun onCreate() {
         super.onCreate()
 
         // chatbit security settings first: the Tor kill switch must apply before any network use
         com.bitchat.android.security.SecurityPreferences.init(this)
         com.bitchat.android.security.MediaVault.init(this)
+        installScreenGuards()
         com.bitchat.android.game.KittyGame.init(this)
         com.bitchat.android.hotspot.HotspotStatus.init(this)
         // plain copies left by "open with…" of a received file

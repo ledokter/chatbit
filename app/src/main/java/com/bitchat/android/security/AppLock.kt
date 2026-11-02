@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.asStateFlow
 /**
  * App lock with chatbit's own PIN only. Fingerprint and face unlock are deliberately not offered:
  * someone can force a finger or a face onto the phone, which would make the duress PIN useless.
- * Locks on cold start and after [RELOCK_AFTER_MS] (5 min) in the background; when no PIN exists
- * yet, the lock screen asks to create one.
+ * Locks on cold start, when the screen turns off and after [RELOCK_AFTER_MS] (5 min) in the
+ * background; when no PIN exists yet, the lock screen asks to create one.
  */
 object AppLock {
     private const val RELOCK_AFTER_MS = 5 * 60_000L
@@ -35,6 +35,11 @@ object AppLock {
     /** Activity.onStop. */
     fun onStop() {
         backgroundSince = SystemClock.elapsedRealtime()
+    }
+
+    /** Screen turned off or panic alert: lock at once (no-op when the lock is off). */
+    fun lockNow() {
+        if (SecurityPreferences.appLock.value) _locked.value = true
     }
 
     fun unlock() {

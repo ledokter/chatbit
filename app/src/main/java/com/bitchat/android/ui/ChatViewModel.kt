@@ -1529,6 +1529,9 @@ class ChatViewModel(
             return
         }
 
+        // a panic-app alert is done once everything above is gone
+        com.bitchat.android.security.SecurityPreferences.setPanicPending(false)
+
         // Recreate mesh service with fresh identity
         com.bitchat.android.services.AppStateStore
             .resumePrivateConversationsAfterPanic()

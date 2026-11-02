@@ -1182,4 +1182,24 @@
     <string name="torlink_clipboard_secure">Le lien passe par le presse-papiers sécurisé de chatbit : il est marqué comme sensible (Android et le clavier ne l\'affichent pas) et il est effacé au bout de 60 secondes, ou dès ton retour dans chatbit, pour qu\'aucune autre appli ne puisse le lire ensuite.</string>
     <string name="torlink_clipboard_keep">L\'effacement automatique du presse-papiers est coupé (Réglages › Sécurité) : le lien y reste, et d\'autres applis peuvent le lire. Vide-le une fois collé.</string>
     <string name="torlink_pasted_toast">Lien copié (presse-papiers sécurisé) : colle-le dans la barre d\'adresse de Tor Browser.</string>
+    <string name="sec_wipe_fails_title">Tout effacer après trop de codes faux</string>
+    <string name="sec_wipe_fails_n">%1$d essais</string>
+    <string name="help_wipe_fails">Quelqu\'un essaie de deviner ton code : après ce nombre de codes faux d\'affilée, tout s\'efface sans rien montrer, comme avec le code de contrainte. Les temps d\'attente entre essais s\'appliquent déjà.</string>
+    <string name="sec_panic_title">Appli de panique</string>
+    <string name="help_panic_app">Une appli bouton de panique (Ripple, PanicKit) peut effacer chatbit d\'un geste. Connecte chatbit depuis cette appli ; seule l\'appli que tu as autorisée peut déclencher l\'effacement.</string>
+    <string name="sec_panic_connected">Connectée : %1$s. Son alerte efface chatbit.</string>
+    <string name="sec_panic_none">Aucune. Connecte chatbit depuis Ripple ou une autre appli PanicKit.</string>
+    <string name="sec_panic_forget">Déconnecter</string>
+    <string name="sec_panic_connect_ask">Autoriser %1$s à effacer chatbit quand tu lances une alerte ? Messages, clés et médias sont effacés, comme avec le code de contrainte.</string>
+    <string name="sec_panic_connect_yes">Autoriser</string>
+    <string name="verify_link_title">Vérifier une identité</string>
+    <string name="verify_link_ask">Une autre appli a ouvert un lien de vérification pour %1$s. Lancer la vérification avec cette personne ?</string>
+    <string name="verify_link_yes">Vérifier</string>
+    <string name="tor_off_title">Couper Tor ?</string>
+    <string name="tor_off_ask">Sans Tor, chaque relais et chaque zone voit ton adresse IP, donc ta position approximative. Ne le coupe que si tu sais pourquoi.</string>
+    <string name="tor_off_yes">Couper</string>
+    <string name="tor_off_keep">Garder Tor</string>
+    <string name="tampered_title">Copie modifiée</string>
+    <string name="tampered_desc">Cette copie de chatbit n\'est pas signée avec la clé officielle : elle a pu être modifiée pour t\'espionner. Réinstalle chatbit depuis le site officiel ou Google Play.</string>
+    <string name="tampered_continue">Continuer quand même</string>
 </resources>

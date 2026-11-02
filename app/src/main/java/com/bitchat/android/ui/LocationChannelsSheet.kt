@@ -612,7 +612,7 @@ fun LocationChannelsSheet(
                     item(key = "tor_routing") {
                         val torProvider = remember { ArtiTorManager.getInstance() }
                         val torAvailable = remember { torProvider.isTorAvailable() }
-                        var torMode by remember { mutableStateOf(TorPreferenceManager.get(context)) }
+                        val torMode by TorPreferenceManager.modeFlow.collectAsState()
 
                         Column {
                             AboutSectionLabel(text = stringResource(R.string.about_network))
@@ -628,15 +628,12 @@ fun LocationChannelsSheet(
                                     title = stringResource(R.string.location_tor_routing_title),
                                     subtitle = stringResource(R.string.location_tor_routing_desc),
                                     checked = torMode == TorMode.ON,
-                                    enabled = torAvailable,
+                                    enabled = torSwitchEnabled(torAvailable, torMode),
                                     statusIndicator = {
                                         BitchatBadge(text = stringResource(R.string.badge_recommended))
                                     },
                                     onCheckedChange = { enabled ->
-                                        if (torAvailable) {
-                                            torMode = if (enabled) TorMode.ON else TorMode.OFF
-                                            TorPreferenceManager.set(context, torMode)
-                                        }
+                                        if (torAvailable) requestTorMode(context, enabled)
                                     }
                                 )
                             }

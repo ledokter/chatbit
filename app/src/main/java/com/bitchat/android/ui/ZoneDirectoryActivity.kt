@@ -74,10 +74,6 @@ class ZoneDirectoryActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (com.bitchat.android.security.SecurityPreferences.blockScreenshots.value &&
-            !com.bitchat.android.security.SecurityPreferences.isTestLab(this)) {
-            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        }
         setContent {
             BitchatTheme {
                 IncognitoKeyboard {
