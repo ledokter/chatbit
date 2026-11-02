@@ -39,3 +39,15 @@
 -keepclassmembers class * implements android.location.LocationListener {
     public <methods>;
 }
+
+# chatbit obfuscation: every renamed class lands in one flat package (no com.bitchat.android.crypto
+# tree left to browse), access modifiers are widened so more code can be merged and inlined.
+-repackageclasses ''
+-allowaccessmodification
+# verbose/debug/info logs are removed from release builds (they describe the protocol step by
+# step); warnings and errors stay for crash diagnosis
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+}
