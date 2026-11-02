@@ -29,6 +29,13 @@ empreintes SHA-256 et le rapport VirusTotal de chaque version.
 
 Android 8.0 ou plus récent. L'APK publié sur le site n'affiche aucune publicité.
 
+## Vidéos
+
+Tutos, usages dans la vraie vie et explications du fonctionnement de bitchat, sur la chaîne YouTube
+chatbit (nouvelle vidéo chaque mardi et vendredi) :
+
+<a href="https://www.youtube.com/@chatbit-messagerie"><img alt="chatbit sur YouTube" src="https://img.shields.io/badge/YouTube-chatbit-FF0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>
+
 ## Captures
 
 <table>

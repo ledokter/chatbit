@@ -30,6 +30,13 @@ SHA-256 checksums and the VirusTotal report of each release.
 
 Requires Android 8.0 or newer. The APK published on the website shows no ads.
 
+## Videos
+
+Tutorials, real-life uses and explanations of how bitchat works, on the chatbit YouTube channel
+(in French, new videos every Tuesday and Friday):
+
+<a href="https://www.youtube.com/@chatbit-messagerie"><img alt="chatbit on YouTube" src="https://img.shields.io/badge/YouTube-chatbit-FF0000?style=for-the-badge&logo=youtube&logoColor=white"/></a>
+
 ## Screenshots
 
 <table>
