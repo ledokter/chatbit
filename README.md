@@ -1,108 +1,114 @@
-<img width="256" height="256" alt="icon_128x128@2x" src="https://github.com/user-attachments/assets/90133f83-b4f6-41c6-aab9-25d0859d2a47" />
+<p align="center">
+  <a href="https://chatbit.zap-info.com/en/"><img width="160" height="160" alt="chatbit" src="https://chatbit.zap-info.com/icon-192.png"/></a>
+</p>
 
-## bitchat for Android
+<h1 align="center">chatbit</h1>
 
-A decentralized peer-to-peer messaging app with dual transport architecture: local Bluetooth mesh networks for offline communication and internet-based Nostr protocol for global reach. No accounts, no phone numbers, no central servers.
+<p align="center">
+  <b>The bitchat messenger for Android, with Tor on by default, anti-flood and private rooms.</b><br/>
+  Bluetooth mesh when there is no network, Nostr over Tor when there is. No account, no phone number.
+</p>
 
-This is the Android implementation of bitchat, fully protocol-compatible with the [iOS version](https://github.com/permissionlesstech/bitchat) for cross-platform mesh communication.
+<p align="center">
+  <a href="https://chatbit.zap-info.com/en/"><b>Website and download</b></a> ·
+  <a href="https://chatbit.zap-info.com/fr/">Site en français</a> ·
+  <a href="https://www.youtube.com/@chatbit-messagerie">YouTube</a> ·
+  <a href="README.fr.md">README en français</a>
+</p>
 
-[bitchat.free](http://bitchat.free)
+---
 
-> **chatbit** is a fork of bitchat-android, under the same GPL v3. The chatbit name and mascot are
-> not part of this repository: a build from this source is unbranded. See [TRADEMARKS.md](TRADEMARKS.md).
+chatbit is a fork of [bitchat-android](https://github.com/permissionlesstech/bitchat-android), the
+decentralized messenger started by Jack Dorsey. It stays compatible with bitchat on iOS and Android
+(Bluetooth mesh and geohash channels), and adds a security layer that is switched on from the first
+launch, with nothing to configure.
 
-[GitHub Releases](https://github.com/permissionlesstech/bitchat-android/releases)
+## Download
 
-[<img alt="Get it on Google Play" height="60" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"/>](https://play.google.com/store/apps/details?id=com.bitchat.droid)
+Get the signed APK from **[chatbit.zap-info.com](https://chatbit.zap-info.com/en/)**. The page lists the
+SHA-256 checksums and the VirusTotal report of each release.
 
-## See it in action
+Requires Android 8.0 or newer. The APK published on the website shows no ads.
+
+## Screenshots
 
 <table>
   <tr>
-    <th>Offline mesh conversation</th>
-    <th>Geohash globe picker</th>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/readme-mesh-chat.png" alt="Active four-peer Bitchat mesh conversation with an image, voice messages, and text messages" width="360"/></td>
-    <td><img src="docs/screenshots/readme-geohash-globe.png" alt="Bitchat geohash location picker showing the whole Earth and geohash grid" width="360"/></td>
+    <td><img src="https://chatbit.zap-info.com/img/filtres.webp" alt="Anti-spam settings: anti-flood, anti-bot and link spam filters" width="260"/></td>
+    <td><img src="https://chatbit.zap-info.com/img/securite.webp" alt="Security settings enabled by default" width="260"/><br/><br/>
+        <img src="https://chatbit.zap-info.com/img/theme.webp" alt="Accent colours and theme" width="260"/></td>
   </tr>
 </table>
 
-## License
+## What chatbit adds to bitchat
 
-This project is released into the public domain. See the [LICENSE](LICENSE.md) file for details.
+**Privacy by default**
+- Tor (Arti) on from the first launch, with automatic route rotation and a one-tap "new route" button
+- Messages are cut off if Tor drops, instead of leaking over the clear network
+- Links open only in Tor Browser
+- Screenshots blocked, notifications hidden, clipboard cleared after 60 seconds, photo metadata (EXIF) removed
+- Incognito keyboard, ephemeral messages (24 h), no presence broadcast
 
-## Features
+**Protection of your phone**
+- chatbit PIN lock on its own keypad (never the system keyboard)
+- Duress PIN: entering it silently wipes everything
+- Encrypted preferences and encrypted media vault, whose key is destroyed on wipe
+- Automatic wipe after a chosen number of days without use
 
-- **Dual Transport Architecture**: Bluetooth LE mesh for offline messaging, Nostr relays for internet-based messaging
-- **Location-Based Channels**: Geographic chat rooms using geohash coordinates over Nostr relays
-- **Intelligent Message Routing**: Automatically chooses the best transport, with queuing and retry when a peer is unreachable
-- **End-to-End Encryption**: [Noise Protocol](https://noiseprotocol.org) (XX pattern, X25519 + ChaCha20-Poly1305) for private messages over the mesh
-- **Decentralized Mesh Network**: Automatic peer discovery and multi-hop relay over Bluetooth LE (max 7 hops)
-- **Wi-Fi Aware Transport**: Higher-bandwidth local mesh on supported devices
-- **Channel Chats**: Topic-based group messaging with optional password protection (Argon2id + AES-256-GCM)
-- **IRC-Style Commands**: Familiar `/join`, `/msg`, `/who` style interface
-- **Tor Support**: Built-in Tor (Arti) for private internet connectivity
-- **Emergency Wipe**: Triple-tap to instantly clear all data
-- **Cross-Platform**: Binary protocol compatible with bitchat on iOS and macOS
+**Clean public channels**
+- Base anti-flood always on: same text repeated, throwaway keys, generated nicknames (bot_xxxx), link spam, Zalgo text
+- Full anti-spam mode with adjustable thresholds and rules, and a list of hidden senders
+- Import and export of block lists (txt / json)
 
-## Technical Architecture
+**More ways to talk**
+- Private rooms encrypted end to end, carried over Nostr and Tor, joined with an invitation link or QR code
+- Interactive globe of geohash channels, with an offline zone directory
+- Offline sharing: a Wi-Fi hotspot serves the app to people nearby, with no Internet needed
+- 34 languages, 8 accent colours, light and dark themes, a guided tour with the chatbit kitten
 
-### Bluetooth Mesh Network (Offline)
+## Inherited from bitchat
 
-- Direct peer-to-peer within Bluetooth range, multi-hop relay through nearby devices
-- Noise Protocol sessions with forward secrecy; peer identities derived from static keys
-- Compact binary packet format with fragmentation, TTL routing, and deduplication
-- Adaptive duty cycling and connection limits for battery efficiency
-- Foreground service keeps the mesh alive within Android background execution limits
+- **Bluetooth LE mesh**: multi-hop relay between nearby phones (up to 7 hops), works with no antenna and no server
+- **Nostr**: geohash location channels and private messages over public relays when the Internet is available
+- **End-to-end encryption**: [Noise Protocol](https://noiseprotocol.org) (XX, X25519 + ChaCha20-Poly1305) for private messages
+- **Proof of work** (NIP-13) on outgoing messages to make spam costly
+- **Emergency wipe**: triple-tap to clear all data
+- IRC-style commands (`/join`, `/msg`, `/who`…), plus chatbit short forms (`/j`, `/m`, `/w`…)
 
-### Nostr Protocol (Internet)
+## Building from source
 
-- Global reach via public relays, geohash-based location channels
-- Private messages fall back to Nostr for mutual favorites when the mesh is unavailable
-- Ephemeral keys per geohash area
-
-### Android Stack
-
-- Kotlin, Jetpack Compose (Material 3), MVVM
-- Coroutines and Flow for all networking and state
-- Core components: `MeshForegroundService` (persistent connectivity), `BluetoothMeshService` / `WifiAwareMeshService` (transports), `UnifiedMeshService` (transport selection), `NoiseSessionManager` (encryption sessions), `MessageRouter` (mesh/Nostr routing with outbox retry)
-
-## Building
-
-Requires Android Studio and the Android SDK (API 26+).
+Requires the Android SDK (API 26+) and JDK 21.
 
 ```bash
-git clone https://github.com/permissionlesstech/bitchat-android.git
-cd bitchat-android
+git clone https://github.com/ledokter/chatbit.git
+cd chatbit
 ./gradlew assembleDebug
-```
-
-Install on a connected device:
-
-```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-The app requests Bluetooth, location (required for BLE scanning), and notification permissions at runtime.
+A build made from this repository alone is **unbranded**: it is called "Chat (unbranded)" and uses a
+plain chat bubble icon. The chatbit name, the kitten mascot and the chatbit icons are not part of this
+repository (see [TRADEMARKS.md](TRADEMARKS.md)).
 
-Release APKs and the Android App Bundle can be rebuilt byte-for-byte in the
-pinned Linux container. Maintainers should follow the
-[Android release guide](docs/maintainer-release-guide.md). See
-[Reproducible builds](docs/reproducible-builds.md) for the build trust model
-and public GitHub/Google Play verification procedures.
-
-## Testing
+Tests:
 
 ```bash
-# Unit tests
-./gradlew test
-
-# Lint
+./gradlew test                  # unit tests
 ./gradlew lint
-
-# Instrumented tests (requires a device or emulator)
-./gradlew connectedAndroidTest
+./gradlew connectedAndroidTest  # needs a device or emulator
 ```
 
-Note that BLE mesh behavior is difficult to emulate; protocol and session logic is covered by unit tests, while radio-level behavior needs real devices.
+Bluetooth mesh behaviour is hard to emulate: protocol and session logic are covered by unit tests,
+radio behaviour needs real phones.
+
+## Privacy
+
+chatbit has no account and no phone number. See [docs/chatbit/PRIVACY.md](docs/chatbit/PRIVACY.md).
+
+## License
+
+chatbit is free software under the **GNU General Public License v3**, like the code it derives from.
+See [LICENSE.md](LICENSE.md). The chatbit name and visuals are covered by [TRADEMARKS.md](TRADEMARKS.md).
+
+Built on [bitchat](https://github.com/permissionlesstech/bitchat) and
+[bitchat-android](https://github.com/permissionlesstech/bitchat-android). Thanks to their authors.
