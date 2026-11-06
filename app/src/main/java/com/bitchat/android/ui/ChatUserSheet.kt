@@ -144,6 +144,28 @@ fun ChatUserSheet(
                             )
                         }
 
+                        // chatbit: only this person's messages in the timeline, or back to everyone
+                        item {
+                            val key = selectedMessage?.let(TimelineFilter::senderKey) ?: targetNickname
+                            val focused = TimelineFilter.focus.collectAsState().value?.key == key
+                            UserActionRow(
+                                title = if (focused) stringResource(R.string.action_focus_off_title)
+                                    else stringResource(R.string.action_focus_title, targetNickname),
+                                subtitle = stringResource(if (focused) R.string.action_focus_off_subtitle else R.string.action_focus_subtitle),
+                                titleColor = standardBlue,
+                                onClick = {
+                                    if (focused) TimelineFilter.clearFocus() else TimelineFilter.setFocus(key, targetNickname)
+                                    onDismiss()
+                                }
+                            )
+                        }
+
+                        // chatbit: hide this person for a few minutes (memory only)
+                        item {
+                            val key = selectedMessage?.let(TimelineFilter::senderKey) ?: targetNickname
+                            TimedMuteRow(nickname = targetNickname, key = key, onDone = onDismiss)
+                        }
+
                         // Slap action
                         item {
                             UserActionRow(
@@ -291,6 +313,60 @@ private fun UserActionRow(
                 fontFamily = BitchatFontFamily,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
+        }
+    }
+}
+
+/** "[ ] Hide @nick for  5 · 15 · 30 · 60 min" — ticking hides at once, unticking shows again. */
+@Composable
+private fun TimedMuteRow(nickname: String, key: String, onDone: () -> Unit) {
+    val muted = TimelineFilter.muted.collectAsState().value
+    val isMuted = muted[key]?.let { it.until > System.currentTimeMillis() } == true
+    var minutes by remember { mutableStateOf(15) }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.medium)
+                .clickable {
+                    if (isMuted) TimelineFilter.unmute(key) else {
+                        TimelineFilter.mute(key, nickname, minutes)
+                        onDone()
+                    }
+                },
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = isMuted,
+                onCheckedChange = { on ->
+                    if (on) {
+                        TimelineFilter.mute(key, nickname, minutes)
+                        onDone()
+                    } else TimelineFilter.unmute(key)
+                }
+            )
+            Text(
+                stringResource(R.string.action_mute_title, nickname, minutes),
+                fontSize = BASE_FONT_SIZE.sp,
+                fontFamily = BitchatFontFamily,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Row(
+            Modifier.fillMaxWidth().padding(start = 48.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            listOf(5, 15, 30, 60).forEach { m ->
+                FilterChip(
+                    selected = minutes == m,
+                    onClick = {
+                        minutes = m
+                        if (isMuted) TimelineFilter.mute(key, nickname, m)
+                    },
+                    label = { Text("$m min", fontFamily = BitchatFontFamily, fontSize = 12.sp) }
+                )
+            }
         }
     }
 }

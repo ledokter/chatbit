@@ -235,6 +235,21 @@ fun ChatScreen(viewModel: ChatViewModel, bottomBarHeight: Dp = 0.dp) {
         }
     }
 
+    // chatbit: per-user focus, text/regex search and timed mutes, on top of blocking
+    LaunchedEffect(conversationKey) { TimelineFilter.onConversation(conversationKey) }
+    val filterFocus by TimelineFilter.focus.collectAsStateWithLifecycle()
+    val filterQuery by TimelineFilter.query.collectAsStateWithLifecycle()
+    val filterRegex by TimelineFilter.regex.collectAsStateWithLifecycle()
+    val filterMuted by TimelineFilter.muted.collectAsStateWithLifecycle()
+    LaunchedEffect(filterMuted) {
+        val next = TimelineFilter.pruneMutes() ?: return@LaunchedEffect
+        kotlinx.coroutines.delay((next - System.currentTimeMillis()).coerceAtLeast(0L) + 500L)
+        TimelineFilter.pruneMutes()
+    }
+    val shownMessages = remember(visibleMessages, filterFocus, filterQuery, filterRegex, filterMuted) {
+        TimelineFilter.apply(visibleMessages, filterFocus, filterQuery, filterRegex, filterMuted)
+    }
+
     val knownMentionPeers = remember(
         currentChannel,
         selectedLocationChannel,
@@ -309,7 +324,7 @@ fun ChatScreen(viewModel: ChatViewModel, bottomBarHeight: Dp = 0.dp) {
             // Nearby-notes strip and the reveal hint both live in this Box alongside the
             // list, rather than in a Column above it, because the conversation has to scroll
             // underneath the translucent bars. Their heights are reserved as list padding.
-            var notesStripHeight by remember { mutableStateOf(0.dp) }
+            var topOverlayHeight by remember { mutableStateOf(0.dp) }
             val showNotesStrip =
                 isMeshTimeline && nearbyNotesRevealed && nearbyNotes.isNotEmpty()
 
@@ -327,7 +342,7 @@ fun ChatScreen(viewModel: ChatViewModel, bottomBarHeight: Dp = 0.dp) {
             LaunchedEffect(conversationLoading) { com.bitchat.android.ui.kitty.ConversationLoading.active.value = conversationLoading }
 
             MessagesList(
-                messages = visibleMessages,
+                messages = shownMessages,
                 blockedIds = blockedIds,
                 currentUserNickname = nickname,
                 meshService = viewModel.meshServiceFacade,
@@ -336,7 +351,7 @@ fun ChatScreen(viewModel: ChatViewModel, bottomBarHeight: Dp = 0.dp) {
                 conversationKey = conversationKey,
                 contentPadding = PaddingValues(
                     top = statusBarHeight + headerHeight +
-                        (if (showNotesStrip) notesStripHeight else 0.dp),
+                        topOverlayHeight,
                     bottom = composerHeight
                 ),
                 forceScrollToBottom = forceScrollToBottom,
@@ -399,17 +414,31 @@ fun ChatScreen(viewModel: ChatViewModel, bottomBarHeight: Dp = 0.dp) {
                 com.bitchat.android.ui.kitty.KittyWaiting()
             }
 
-            if (showNotesStrip) {
-                NearbyNotesStrip(
-                    noteCount = nearbyNotes.size,
-                    onClick = { showLocationNotesSheet = true },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = statusBarHeight + headerHeight)
-                        .onSizeChanged { size ->
-                            notesStripHeight = with(density) { size.height.toDp() }
-                        },
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(top = statusBarHeight + headerHeight)
+                    .onSizeChanged { size ->
+                        topOverlayHeight = with(density) { size.height.toDp() }
+                    }
+            ) {
+                if (showNotesStrip) {
+                    NearbyNotesStrip(
+                        noteCount = nearbyNotes.size,
+                        onClick = { showLocationNotesSheet = true },
+                    )
+                }
+                if (selectedPrivatePeer == null) {
+                    TimelineFilterBar(
+                        focus = filterFocus,
+                        query = filterQuery,
+                        regex = filterRegex,
+                        muted = filterMuted,
+                        shownCount = shownMessages.size,
+                        totalCount = visibleMessages.size
+                    )
+                }
             }
 
             // Input area - overlays the bottom of the conversation

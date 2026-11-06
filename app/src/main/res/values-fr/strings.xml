@@ -847,7 +847,7 @@
     <string name="rooms_send">Envoyer</string>
 
     <!-- chatbit -->
-    <string name="map_open">Carte du monde (activité en direct)</string>
+    <string name="map_open">Map activity</string>
     <string name="map_title">Carte du monde</string>
     <string name="map_layer_activity">activité en direct</string>
     <string name="map_layer_geocaches">géocaches</string>
@@ -1202,4 +1202,44 @@
     <string name="tampered_title">Copie modifiée</string>
     <string name="tampered_desc">Cette copie de chatbit n\'est pas signée avec la clé officielle : elle a pu être modifiée pour t\'espionner. Réinstalle chatbit depuis le site officiel ou Google Play.</string>
     <string name="tampered_continue">Continuer quand même</string>
+
+    <!-- chatbit: timeline filters, meeting point, hotspot setting -->
+    <string name="timeline_search_fold">Rechercher dans le fil</string>
+    <string name="timeline_search_active">Recherche : « %1$s » (%2$d)</string>
+    <string name="timeline_search_hint">Texte à chercher</string>
+    <string name="timeline_search_hint_regex">Expression régulière</string>
+    <string name="timeline_search_clear">Effacer la recherche</string>
+    <string name="timeline_search_bad_regex">Regex invalide : %1$s</string>
+    <string name="timeline_search_count">%1$d messages sur %2$d</string>
+    <string name="timeline_search_help">Cherche dans les messages et les pseudos affichés. .* = expression régulière.</string>
+    <string name="timeline_focus_active">Seulement @%1$s (%2$d)</string>
+    <string name="timeline_focus_clear">Tout revoir</string>
+    <string name="timeline_muted_active">Masqués pour l\'instant : %1$s</string>
+    <string name="timeline_muted_clear">Réafficher</string>
+    <string name="action_focus_title">Seulement les messages de @%1$s</string>
+    <string name="action_focus_subtitle">Filtrer le fil sur cette personne</string>
+    <string name="action_focus_off_title">Revoir tout le fil</string>
+    <string name="action_focus_off_subtitle">Retirer le filtre sur cette personne</string>
+    <string name="action_mute_title">Masquer @%1$s pendant %2$d min</string>
+    <string name="rdv_open">Point de RDV (geohash / Plus Code)</string>
+    <string name="rdv_title">Point de rendez-vous</string>
+    <string name="rdv_intro">Tape ou colle un geohash, un Plus Code ou des coordonnées : les autres formes sont calculées sur le téléphone, rien ne part sur internet.</string>
+    <string name="rdv_input_label">Geohash, Plus Code ou lat, lon</string>
+    <string name="rdv_input_error">Non reconnu. Exemples : u09tvw0f6 · 8FW4V75V+8QH · 48.8584, 2.2945</string>
+    <string name="rdv_zone_center">C\'est une zone entière : le point ci-dessous est son centre. Ajoute des caractères pour être plus précis.</string>
+    <string name="rdv_geohash">Geohash (≈ 5 m)</string>
+    <string name="rdv_plus_code">Plus Code (≈ 3 m)</string>
+    <string name="rdv_coordinates">Coordonnées GPS</string>
+    <string name="rdv_send">Envoyer dans le salon</string>
+    <string name="rdv_open_map">Ouvrir dans une appli de carte</string>
+    <string name="rdv_no_map_app">Aucune appli de carte installée</string>
+    <string name="rdv_privacy">L\'envoyer montre cet endroit précis à tout le salon.</string>
+    <string name="rdv_copy">Copier %1$s</string>
+    <string name="rdv_message_prefix">RDV :</string>
+    <string name="settings_hotspot_title">Point d\'accès Wi-Fi</string>
+    <string name="settings_hotspot_sum_on">Actif : %1$s · %2$d téléchargements</string>
+    <string name="settings_hotspot_sum_off">Arrêté</string>
+    <string name="settings_hotspot_row">Point d\'accès de partage</string>
+    <string name="settings_hotspot_desc_on">Désactive pour couper le réseau Wi-Fi et la page de téléchargement.</string>
+    <string name="settings_hotspot_desc_off">Arrêté. Il se lance depuis Partager l\'appli.</string>
 </resources>

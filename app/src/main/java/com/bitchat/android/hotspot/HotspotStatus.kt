@@ -96,6 +96,11 @@ object HotspotStatus {
         _stopRequests.tryEmit(Unit)
     }
 
+    /** Same path as the notification's stop action: works whether or not the hotspot screen still lives. */
+    fun stopIntent(context: Context): Intent =
+        Intent(context, HotspotActivity::class.java).setAction(ACTION_STOP)
+            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+
     fun ended() {
         _live.value = null
         if (::appContext.isInitialized) NotificationManagerCompat.from(appContext).cancel(NOTIFICATION_ID)
@@ -132,8 +137,7 @@ object HotspotStatus {
         )
         val stop = PendingIntent.getActivity(
             ctx, 2,
-            Intent(ctx, HotspotActivity::class.java).setAction(ACTION_STOP)
-                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK),
+            stopIntent(ctx),
             flags
         )
         val notification = NotificationCompat.Builder(ctx, CHANNEL_ID)

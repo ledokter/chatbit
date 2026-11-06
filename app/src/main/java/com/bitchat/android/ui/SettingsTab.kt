@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Palette
@@ -313,6 +314,31 @@ internal fun SettingsTab(viewModel: ChatViewModel, onReplayTour: () -> Unit, mod
                         text = stringResource(R.string.flood_open_settings),
                         onClick = { showFlood = true },
                         modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
+                }
+            }
+        }
+
+        // chatbit: the app-sharing Wi-Fi hotspot, stoppable from here too (not only from the banner)
+        item(key = "hotspot") {
+            val live by com.bitchat.android.hotspot.HotspotStatus.live.collectAsState()
+            val running = live != null
+            SettingsCard(
+                id = "hotspot", icon = Icons.Filled.Wifi, open = open, onToggle = toggle,
+                title = stringResource(R.string.settings_hotspot_title),
+                summary = live?.let { stringResource(R.string.settings_hotspot_sum_on, it.ssid, it.downloads) }
+                    ?: stringResource(R.string.settings_hotspot_sum_off),
+                ok = !running,
+                contentPadding = PaddingValues(bottom = 12.dp)
+            ) {
+                Column {
+                    SettingsToggleRow(
+                        Icons.Filled.Wifi,
+                        stringResource(R.string.settings_hotspot_row),
+                        stringResource(if (running) R.string.settings_hotspot_desc_on else R.string.settings_hotspot_desc_off),
+                        running,
+                        { on -> if (!on) context.startActivity(com.bitchat.android.hotspot.HotspotStatus.stopIntent(context)) },
+                        enabled = running
                     )
                 }
             }

@@ -132,6 +132,16 @@ fun LocationChannelsSheet(
 
     val bookmarks by bookmarksStore.bookmarks.collectAsStateWithLifecycle()
     val bookmarkNames by bookmarksStore.bookmarkNames.collectAsStateWithLifecycle()
+
+    // chatbit: meeting point converter (geohash / Plus Code / coordinates), opened from the big buttons
+    var showRdv by remember { mutableStateOf(false) }
+    if (showRdv) {
+        RdvConverterSheet(
+            viewModel = viewModel,
+            onDismiss = { showRdv = false },
+            onSent = { showRdv = false; onDismiss() }
+        )
+    }
     val geohashParticipantCounts by viewModel.geohashParticipantCounts.collectAsStateWithLifecycle()
     val wifiAwareEnabled by WifiAwareController.enabled.collectAsStateWithLifecycle()
 
@@ -236,22 +246,34 @@ fun LocationChannelsSheet(
                     }
                     // chatbit: world map and zone directory first, as two big buttons
                     item(key = "map_and_directory") {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 12.dp)) {
+                        // same height for both, whatever the label length in each language
                         Row(
-                            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 12.dp),
+                            Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             BigPlaceButton(
                                 icon = { Icon(painterResource(R.drawable.ic_spec_globe), contentDescription = null, modifier = Modifier.size(26.dp)) },
                                 label = stringResource(R.string.map_open),
                                 onClick = { mapPickerLauncher.launch(Intent(context, WorldMapActivity::class.java)) },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f).fillMaxHeight()
                             )
                             BigPlaceButton(
                                 icon = { Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(26.dp)) },
                                 label = stringResource(R.string.dir_open),
                                 onClick = { mapPickerLauncher.launch(Intent(context, ZoneDirectoryActivity::class.java)) },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f).fillMaxHeight()
                             )
+                        }
+                        OutlinedButton(
+                            onClick = { showRdv = true },
+                            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Filled.PinDrop, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.rdv_open), fontFamily = BitchatFontFamily, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        }
                         }
                     }
                     // Mesh section: icon + title header, offline subtitle, then selection card
@@ -1263,7 +1285,7 @@ private fun BigPlaceButton(icon: @Composable () -> Unit, label: String, onClick:
         Column(
             Modifier.padding(vertical = 14.dp, horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)
         ) {
             icon()
             Text(

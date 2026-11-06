@@ -885,7 +885,7 @@
     <string name="rooms_send">Send</string>
 
     <!-- chatbit -->
-    <string name="map_open">World map (live activity)</string>
+    <string name="map_open">Map activity</string>
     <string name="map_title">World map</string>
     <string name="map_layer_activity">live activity</string>
     <string name="map_layer_geocaches">geocaches</string>
@@ -1242,4 +1242,44 @@
     <string name="tampered_title">Modified copy</string>
     <string name="tampered_desc">This copy of chatbit is not signed with the official key: it may have been modified to spy on you. Install chatbit again from the official website or Google Play.</string>
     <string name="tampered_continue">Continue anyway</string>
+
+    <!-- chatbit: timeline filters, meeting point, hotspot setting -->
+    <string name="timeline_search_fold">Search the timeline</string>
+    <string name="timeline_search_active">Search: “%1$s” (%2$d)</string>
+    <string name="timeline_search_hint">Text to find</string>
+    <string name="timeline_search_hint_regex">Regular expression</string>
+    <string name="timeline_search_clear">Clear the search</string>
+    <string name="timeline_search_bad_regex">Invalid regex: %1$s</string>
+    <string name="timeline_search_count">%1$d of %2$d messages</string>
+    <string name="timeline_search_help">Searches the messages and nicknames on screen. .* = regular expression.</string>
+    <string name="timeline_focus_active">Only @%1$s (%2$d)</string>
+    <string name="timeline_focus_clear">Show all</string>
+    <string name="timeline_muted_active">Hidden for now: %1$s</string>
+    <string name="timeline_muted_clear">Show again</string>
+    <string name="action_focus_title">Only @%1$s\'s messages</string>
+    <string name="action_focus_subtitle">Filter the timeline on this person</string>
+    <string name="action_focus_off_title">Show the whole timeline</string>
+    <string name="action_focus_off_subtitle">Remove the filter on this person</string>
+    <string name="action_mute_title">Hide @%1$s for %2$d min</string>
+    <string name="rdv_open">Meeting point (geohash / Plus Code)</string>
+    <string name="rdv_title">Meeting point</string>
+    <string name="rdv_intro">Type or paste a geohash, a Plus Code or coordinates: the other forms are computed on the phone, nothing goes online.</string>
+    <string name="rdv_input_label">Geohash, Plus Code or lat, lon</string>
+    <string name="rdv_input_error">Not recognised. Examples: u09tvw0f6 · 8FW4V75V+8QH · 48.8584, 2.2945</string>
+    <string name="rdv_zone_center">This is a whole zone: the point below is its centre. Add characters to be more precise.</string>
+    <string name="rdv_geohash">Geohash (≈ 5 m)</string>
+    <string name="rdv_plus_code">Plus Code (≈ 3 m)</string>
+    <string name="rdv_coordinates">GPS coordinates</string>
+    <string name="rdv_send">Send in the channel</string>
+    <string name="rdv_open_map">Open in a map app</string>
+    <string name="rdv_no_map_app">No map app installed</string>
+    <string name="rdv_privacy">Sending it shows this exact place to everyone in the channel.</string>
+    <string name="rdv_copy">Copy %1$s</string>
+    <string name="rdv_message_prefix">Meeting point:</string>
+    <string name="settings_hotspot_title">Wi-Fi hotspot</string>
+    <string name="settings_hotspot_sum_on">On: %1$s · %2$d downloads</string>
+    <string name="settings_hotspot_sum_off">Off</string>
+    <string name="settings_hotspot_row">App-sharing hotspot</string>
+    <string name="settings_hotspot_desc_on">Turn off to stop the Wi-Fi network and the download page.</string>
+    <string name="settings_hotspot_desc_off">Off. It starts from Share the app.</string>
 </resources>
