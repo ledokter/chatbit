@@ -175,6 +175,11 @@ class MainActivity : OrientationAwareActivity() {
                         onDuress = { chatViewModel.panicClearAllData() }
                     )
                 } else {
+                    // PIN just accepted: the hopping cat says messages are loading
+                    val loading by com.bitchat.android.security.AppLock.loadingAfterUnlock.collectAsState()
+                    if (loading) com.bitchat.android.ui.UnlockLoadingCover(
+                        onDone = { com.bitchat.android.security.AppLock.loadingDone() }
+                    )
                     ExternalVerifyDialog()
                     com.bitchat.android.ui.TorOffConfirmDialog()
                     TamperedCopyDialog()

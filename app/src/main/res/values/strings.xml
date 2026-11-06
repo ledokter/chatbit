@@ -924,6 +924,7 @@
     <string name="pin_confirm">Repeat</string>
     <string name="pin_save">Save</string>
     <string name="pin_enter">Enter your PIN</string>
+    <string name="unlock_loading">Loading your messages…</string>
     <string name="pin_wrong">Wrong PIN</string>
     <string name="pin_wait">Too many tries, wait %1$d s</string>
     <string name="pin_delete">Delete digit</string>

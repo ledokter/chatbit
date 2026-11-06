@@ -42,7 +42,17 @@ object AppLock {
         if (SecurityPreferences.appLock.value) _locked.value = true
     }
 
-    fun unlock() {
+    private val _loadingAfterUnlock = MutableStateFlow(false)
+    /** True right after a PIN unlock: the hopping-cat cover shows while messages load. */
+    val loadingAfterUnlock: StateFlow<Boolean> = _loadingAfterUnlock.asStateFlow()
+
+    /** [showLoading]: unlocked with the PIN, show the loading cover until messages are in. */
+    fun unlock(showLoading: Boolean = false) {
+        if (showLoading) _loadingAfterUnlock.value = true
         _locked.value = false
+    }
+
+    fun loadingDone() {
+        _loadingAfterUnlock.value = false
     }
 }

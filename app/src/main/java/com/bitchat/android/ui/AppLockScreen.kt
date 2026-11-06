@@ -63,8 +63,9 @@ fun AppLockScreen(onDuress: () -> Unit = {}) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
     ) {
-        ChatbitLogo(height = 72.dp)
-        if (setup || !hasPin) PinCreate() else PinPad(onDuress)
+        var checking by remember { mutableStateOf(false) }
+        HoppingMascot(height = 72.dp, active = checking)
+        if (setup || !hasPin) PinCreate() else PinPad(onDuress, onChecking = { checking = it })
     }
 }
 
@@ -126,7 +127,7 @@ private fun PinCreate() {
 }
 
 @Composable
-private fun PinPad(onDuress: () -> Unit) {
+private fun PinPad(onDuress: () -> Unit, onChecking: (Boolean) -> Unit) {
     val scope = rememberCoroutineScope()
     var error by remember { mutableStateOf(false) }
     var checking by remember { mutableStateOf(false) }
@@ -145,13 +146,15 @@ private fun PinPad(onDuress: () -> Unit) {
         autoLength = remember { SecurityPreferences.autoSubmitLength() },
         onSubmit = { typed ->
             checking = true
+            onChecking(true)
             scope.launch {
                 val result = withContext(Dispatchers.Default) { SecurityPreferences.checkPin(typed) }
                 checking = false
+                onChecking(false)
                 when (result) {
-                    PinResult.OK -> AppLock.unlock()
+                    PinResult.OK -> AppLock.unlock(showLoading = true)
                     // too many wrong PINs (when chosen): same silent wipe as the duress PIN
-                    PinResult.DURESS, PinResult.WIPE -> { onDuress(); AppLock.unlock() }
+                    PinResult.DURESS, PinResult.WIPE -> { onDuress(); AppLock.unlock(showLoading = true) }
                     PinResult.WRONG, PinResult.LOCKED_OUT -> {
                         error = true
                         waitMs = SecurityPreferences.pinLockoutRemainingMs()
@@ -172,7 +175,8 @@ internal fun Keypad(title: String, isError: Boolean, enabled: Boolean, autoLengt
     val colors = MaterialTheme.colorScheme
     Text(title, fontFamily = BitchatFontFamily, color = if (isError) colors.error else colors.onBackground)
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        repeat(maxOf(SecurityPreferences.PIN_MIN, pin.length)) { i ->
+        val slots = if (autoLength > 0) autoLength else SecurityPreferences.NEW_PIN_MIN
+        repeat(maxOf(slots, pin.length)) { i ->
             Box(
                 Modifier.size(14.dp).clip(CircleShape)
                     .background(if (i < pin.length) colors.primary else colors.onBackground.copy(alpha = 0.2f))

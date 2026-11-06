@@ -886,6 +886,7 @@
     <string name="pin_confirm">Confirmer</string>
     <string name="pin_save">Enregistrer</string>
     <string name="pin_enter">Entre ton code</string>
+    <string name="unlock_loading">Chargement de tes messages…</string>
     <string name="pin_wrong">Code incorrect</string>
     <string name="pin_wait">Trop d\'essais, attends %1$d s</string>
     <string name="pin_delete">Effacer un chiffre</string>
